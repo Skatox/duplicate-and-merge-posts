@@ -494,17 +494,11 @@ if ( ! class_exists('cnSettingsAPI') )
 			$out = '';
 			$sort = array();
 
-			// Page icon.
-			if ( ! empty( $args['page_icon'] ) ) echo get_screen_icon( $args['page_icon'] );
-
 			// Page title.
 			if ( ! empty( $args['page_title'] ) ) echo '<h2>' , $args['page_title'] , '</h2>';
 
 			// Display any registered settings errors and success messages.
 			settings_errors();
-
-			// Display the tab icon
-			if ( ! empty( $args['tab_icon'] ) ) echo get_screen_icon( $args['tab_icon'] );
 
 			// If the page hook was not supplied echo an empty string.
 			if ( ! empty( $pageHook ) )

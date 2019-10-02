@@ -611,11 +611,16 @@ class DuplicatePost{
 
 		$a = $this->get_string_value( $field ,$original_post_id, $original_post );
 		$b = $this->get_string_value( $field ,$post_id         , $post );
-		$field["label"] = ucfirst($field["label"]);
+
+		$hasLabel = array_key_exists("label", $field);
+
+		if ($hasLabel) {
+			$field["label"] = ucfirst($field["label"]);
+		}
 
 		$diff_html = wp_text_diff( $a, $b );
 
-		if($diff_html != ""){
+		if($diff_html != "" && $hasLabel){
 		  ?>
 		  <h3 class="diff_field_title"><?php echo $field["label"]; ?></h3>
 		  <?php
@@ -795,18 +800,19 @@ class DuplicatePost{
 	/* Check if a field is in tab, if so return the tab field object */
 	private function is_in_tab( $field_obj ){
 
-	  $tab = null;
-	  $acf_fields = $this->my_acf_get_fields_in_group( $field_obj["field_group"] );
+      if (isset($field_obj["field_group"])) {
+	      $tab = null;
+	      $acf_fields = $this->my_acf_get_fields_in_group( $field_obj["field_group"] );
 
-	  foreach($acf_fields as $key=>$acf_field){
-	    if($acf_field["key"] == $field_obj["key"]){
-	      return $tab;
-	    }
-	    if($acf_field["type"] == "tab"){
-	      $tab = $acf_field;
-	    }
-	  }
-
+	      foreach($acf_fields as $key=>$acf_field){
+		      if($acf_field["key"] == $field_obj["key"]){
+			      return $tab;
+		      }
+		      if($acf_field["type"] == "tab"){
+			      $tab = $acf_field;
+		      }
+	      }
+      }
 	}
 
 	/* Get ACF Fields that belong to certain ACF Fields Group */
@@ -1146,7 +1152,7 @@ class DuplicatePost{
 			if (!empty($suffix)) $suffix = " ".$suffix;
 			if ($this->get_option('duplicate_post_copystatus') == 0) $status = 'draft';
 		}
-		$new_post_author = $this->duplicate_post_get_current_user();
+		$new_post_author = apply_filters( 'dp_new_post_author', $this->duplicate_post_get_current_user(), $to_post_id );
 
 		$new_post = array(
 		'menu_order' => $post_to_dup->menu_order,
@@ -1193,9 +1199,9 @@ class DuplicatePost{
 		// If you have written a plugin which uses non-WP database tables to save
 		// information about a post you can hook this action to dupe that data.
 		if ($post_to_dup->post_type == 'page' || (function_exists('is_post_type_hierarchical') && is_post_type_hierarchical( $post_to_dup->post_type )))
-		do_action( 'dp_duplicate_page', $new_post_id, $post_to_dup );
+		do_action( 'dp_duplicate_page', $new_post_id, $post_to_dup, $to_post_id );
 		else
-		do_action( 'dp_duplicate_post', $new_post_id, $post_to_dup );
+		do_action( 'dp_duplicate_post', $new_post_id, $post_to_dup, $to_post_id );
 
 		if($to_post_id == ''){
 			delete_post_meta($new_post_id, '_dp_original');
